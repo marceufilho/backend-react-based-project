@@ -3,8 +3,9 @@ const cors = require('cors');
 const sqlite3 = require('sqlite3').verbose();
 const path = require('path');
 const multer = require('multer');
+const fs = require('fs');
 const app = express();
-const port = 3001;
+const port =  process.env.PORT || 3001;
 
 // Set up multer for file uploads
 const upload = multer({ dest: 'uploads/' });
@@ -12,6 +13,19 @@ const upload = multer({ dest: 'uploads/' });
 app.use(cors()); // Enable CORS for all routes
 app.use(express.json());
 app.use('/data', express.static(path.join(__dirname, 'data')));  // Serve static files
+
+// Run setupdatabase.js to initialize the database
+const { exec } = require('child_process');
+if (!fs.existsSync('./data/clientes.db')) {
+  exec('node setupdatabase.js', (error, stdout, stderr) => {
+    if (error) {
+      console.error(`exec error: ${error}`);
+      return;
+    }
+    console.log(`stdout: ${stdout}`);
+    console.error(`stderr: ${stderr}`);
+  });
+}
 
 // Initialize database
 const db = new sqlite3.Database('./data/clientes.db');
